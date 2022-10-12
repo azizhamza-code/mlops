@@ -6,9 +6,23 @@ from tqdm import tqdm
 import requests
 from ast import literal_eval
 import pandas as pd
+import numpy as np
+import random
 
 file_path = Path(__file__).resolve().parent
 GITHUB_URL = "https://github.com/azizhamza-code/NLP/"
+
+
+def data_dir():
+
+    data_dir = os.path.abspath(__file__ + "\..\..\data")
+    return data_dir
+
+
+def artifact_dir():
+    data_dir = os.path.abspath(__file__ + r"\..\..\artifact")
+    os.makedirs(data_dir, exist_ok=True)
+    return data_dir
 
 
 def download_file(url: str, file_path: str) -> None:
@@ -47,11 +61,29 @@ def import_data(target_dir: str = "data", force: bool = False) -> None:
         "train.tsv", "test.tsv", "validation.tsv", "text_prepare_tests.tsv"],
         version="datav1")
 
-def read_data(file:str,test:bool = False):
-    data = pd.read_csv(file,sep='\t')
+# TODO: add logging to the portions of data
+# TODO: add portion to config
+
+
+def read_data(file: str, target_dir, test: bool = False, dev_mode=True, ration=0.3):
+
+    file_path = os.path.join(target_dir, file)
+    data = pd.read_csv(file_path, sep='\t')
     if not test:
         data['tags'] = data['tags'].apply(literal_eval)
+    if dev_mode:
+        num_samples = int(len(data)*ration)
+        data = data.sample(frac=1).reset_index(drop=True)  # shuffle
+        data = data[: num_samples]  # None = all samples
     return data
 
 
-    
+def get_unique_classes(y_train):
+
+    return np.unique(np.hstack(y_train))
+
+
+def set_seeds(seed=42):
+    """Set seeds for reproducibility."""
+    np.random.seed(seed)
+    random.seed(seed)

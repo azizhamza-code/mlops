@@ -1,20 +1,20 @@
 from pandas import DataFrame
 from nltk.corpus import stopwords
 import re
-from mzops.utils import import_data , read_data , data_dir
-import nltk
+from mzops.utils import import_data, read_data
+from mzops.utils import stopswords_setup
 import os
-nltk.download('stopwords')
+from mzops.config import DATA_DIR, get_log_handlers
+import logging
+from mzops.utils import set_logger_module
 
-
+stopswords_setup()
 
 REPLACE_BY_SPACE_RE = re.compile('[/(){}\[\]\|@,;]')
 BAD_SYMBOLS_RE = re.compile('[^0-9a-z #+_]')
 STOPWORDS = set(stopwords.words('english'))
-#TODO: make it on config file  
-#TODO: make it os independent
 
-data_dir = data_dir()
+logger = set_logger_module(__name__)
 
 def text_prepare(text):
     """
@@ -33,32 +33,31 @@ def text_prepare(text):
     return " ".join(text)
 
 
-def spli_x_y(train ,val ,test):
+def spli_x_y(train, val, test):
 
-    x_train  , y_train = train['title'].values , train['tags'].values
-    x_val , y_val = val['title'].values , val['tags'].values
+    logger.info("split start")
+
+    x_train, y_train = train['title'].values, train['tags'].values
+    x_val, y_val = val['title'].values, val['tags'].values
     x_test = test['title'].values
 
-    return x_train ,y_train , x_val ,y_val ,x_test
+    logger.info("split done")
+    
+    return x_train, y_train, x_val, y_val, x_test
+
 
 def etl(dev_mode):
+    logger.info("etl start")
 
-    import_data(target_dir=data_dir)
-    train, val, test = read_data("train.tsv",target_dir = data_dir,dev_mode = dev_mode), read_data(
-        "validation.tsv",target_dir = data_dir,dev_mode = dev_mode), read_data("test.tsv",target_dir = data_dir, test=True,dev_mode = dev_mode)
+    import_data(target_dir=DATA_DIR)
+    train, val, test = read_data("train.tsv", target_dir=DATA_DIR, dev_mode=dev_mode), read_data(
+        "validation.tsv", target_dir=DATA_DIR, dev_mode=dev_mode), read_data("test.tsv", target_dir=DATA_DIR, test=True, dev_mode=dev_mode)
 
-    x_train , y_train , x_val , y_val , x_test =spli_x_y(train , val ,test)
+    x_train, y_train, x_val, y_val, x_test = spli_x_y(train, val, test)
 
     x_train = [text_prepare(x) for x in x_train]
     x_val = [text_prepare(x) for x in x_val]
     x_test = [text_prepare(x) for x in x_test]
-        
-    return x_train , y_train , x_val , y_val , x_test
+    logger.info("etl done")
 
-
-
-
-
-
-
-
+    return x_train, y_train, x_val, y_val, x_test

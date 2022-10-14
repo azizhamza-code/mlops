@@ -1,4 +1,6 @@
 
+from asyncio.log import logger
+import sys
 from typing import List
 from pathlib import Path
 import os
@@ -8,21 +10,21 @@ from ast import literal_eval
 import pandas as pd
 import numpy as np
 import random
+import nltk
+import logging
+from mzops.config import get_log_handlers
+from rich.logging import RichHandler
 
 file_path = Path(__file__).resolve().parent
 GITHUB_URL = "https://github.com/azizhamza-code/NLP/"
 
 
-def data_dir():
-
-    data_dir = os.path.abspath(__file__ + "\..\..\data")
-    return data_dir
-
-
-def artifact_dir():
-    data_dir = os.path.abspath(__file__ + r"\..\..\artifact")
-    os.makedirs(data_dir, exist_ok=True)
-    return data_dir
+def stopswords_setup():
+    try:
+        nltk.data.find('corpora/stopwords')
+        pass
+    except:
+        nltk.download('stopwords')
 
 
 def download_file(url: str, file_path: str) -> None:
@@ -44,7 +46,7 @@ def download_from_github(target_dir: str, file: str, version, force: False):
     url = GITHUB_URL + f"releases/download/{version}/{file}"
     file_path = os.path.join(target_dir, file)
     if os.path.exists(file_path) and not force:
-        print(f"{file} already downloaded in {file_path}")
+        logger.info(f"{file} already downloaded")
         return
     download_file(url, file_path)
 
@@ -87,3 +89,14 @@ def set_seeds(seed=42):
     """Set seeds for reproducibility."""
     np.random.seed(seed)
     random.seed(seed)
+
+
+def set_logger_module(name: str):
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
+    handlers = get_log_handlers()
+    logger.addHandler(handlers['file_log'])
+    logger.addHandler(handlers['stdout'])
+    
+    return logger
+

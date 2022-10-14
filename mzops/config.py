@@ -39,8 +39,11 @@ def get_log_handlers():
     return {'stdout':c_handler,'file_log':f_handler}
 
 d = {}
-d['status'] = 'predict'
-d['sub_data'] = True
+d['saving_encoder'] = True
+d['saving_vectorizer'] = True
+d['saving_model'] = True
+d['status'] = 'train'
+d['sub_data'] = False
 d['sample'] = 'the best  os machine windows python javascript and pandas numpy'
 d['artifactdir'] = ARTIFACT_DIR
 d['model_artifact'] = Path(ARTIFACT_DIR, 'model.gz')
